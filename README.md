@@ -2,6 +2,3 @@
 
 
 Visit Frontend [here](https://jannisgrebien.github.io/smartbrainApp/)
-
-
-Working on the backend at the moment
