@@ -30,7 +30,7 @@ const particlesOptions = {
 const initialState = {
   input: '',
   imgUrl: '',
-  box: {},
+  boxes: [],
   route: 'signin',
   isSignedIn: false,
   user: {
@@ -65,22 +65,24 @@ class App extends Component {
 
 
   calculateFaceLocation = (data) => {
-    const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
+    const clarifaiFaces = data.outputs[0].data.regions.map(region => region_info.bounding_box);
     const image = document.getElementById('inputimage');
     const width = Number(image.width);
     const height = Number(image.height);
-    // console.log(width, height);
-    return {
-      leftCol: clarifaiFace.left_col * width,
-      topRow: clarifaiFace.top_row * height,
-      rightCol: width - (clarifaiFace.right_col * width),
-      bottomRow: height -(clarifaiFace.bottom_row * height)
-    }
+
+    return clarifaiFaces.map(face => {
+      return {
+        leftCol: face.left_col * width,
+        topRow: face.top_row * height,
+        rightCol: width - (face.right_col * width),
+        bottomRow: height -(face.bottom_row * height)
+      }
+    })
   }
 
 
-  displayFacebox = (box) => {
-    this.setState({box: box});
+  displayFacebox = (boxes) => {
+    this.setState({boxes: boxes});
   }
 
 
@@ -100,11 +102,13 @@ class App extends Component {
       .then(response => response.json())
       .then(response => {
         if(response) {
+          const faces = response.outputs[0].data.regions.length;
           fetch('https://quiet-bayou-32484.herokuapp.com/image',{
             method: 'put',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-              id: this.state.user.id
+              id: this.state.user.id,
+              faces: faces
             })
           })
             .then(response => response.json())
@@ -147,7 +151,7 @@ class App extends Component {
             <ImageLinkForm 
               onInputChange={this.onInputChange} 
               onButtonSubmit={this.onPictureSubmit}/>
-            <FaceRecognition box={box} imageUrl={imgUrl}/>
+            <FaceRecognition boxes={boxes} imageUrl={imgUrl}/>
         </div>
           : (
             route === 'signin'
